@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
 
         const existingUser = users.find((u) =>
-            u.email === values.email &&
+            u.email === values.email.toLowerCase() &&
             u.password === values.password &&
             u.role === values.role
         );

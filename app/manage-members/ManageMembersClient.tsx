@@ -135,10 +135,27 @@ export default function ManageMembersClient() {
     }, [session.email, user?.role])
 
     const saveMembers = (updated: Member[]) => {
-        const all: Member[] = JSON.parse(localStorage.getItem("famwallet_members") || "[]")
-        const others = all.filter((m) => m.createdBy !== session.email)
-        localStorage.setItem("famwallet_members", JSON.stringify([...others, ...updated]))
-        setMembers(updated)
+        const all: Member[] = JSON.parse(
+            localStorage.getItem("famwallet_members") || "[]"
+        )
+
+        const others = all.filter(
+            (m) => m.createdBy !== session.email
+        )
+
+        const uniqueMembers = updated.filter(
+            (member, index, self) =>
+                index === self.findIndex(
+                    (m) => m.email === member.email
+                )
+        )
+
+        localStorage.setItem(
+            "famwallet_members",
+            JSON.stringify([...others, ...uniqueMembers])
+        )
+
+        setMembers(uniqueMembers)
     }
 
     const formik = useFormik({
@@ -168,7 +185,7 @@ export default function ManageMembersClient() {
                     role: "family_member"
                 }
                 localStorage.setItem("famwallet_users", JSON.stringify([...authUsers, { email: values.email, password: values.password, role: "family_member" }]))
-                saveMembers([...members, newMember])
+                saveMembers([...members.filter(m => m.role !== "family_head"), newMember])
             }
 
             handleClose()
@@ -347,13 +364,11 @@ export default function ManageMembersClient() {
                                     </IconButton>
                                 </Stack>
                             )}
-                            <Typography sx={{ color: "gray" }}>
-                                {user?.email === member.email
-                                    ? "(You)"
-                                    : member.role === "family_head"
-                                        ? "Family Head"
-                                        : ""}
-                            </Typography>
+                            {(user?.email === member.email || member.role === "family_head") && (
+                                <Typography sx={{ color: "gray" }}>
+                                    {user?.email === member.email ? "(You)" : "Family Head"}
+                                </Typography>
+                            )}
                         </Box>
                     ))}
                 </Stack>
