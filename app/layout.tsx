@@ -21,12 +21,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <ThemeRegistry>
           <AuthProvider>
             <ProtectedRoute>
-              <main
-                style={{
-                  minHeight: "100vh",
-                  padding: "24px",
-                }}
-              >
+              <main>
                 {children}
               </main>
             </ProtectedRoute>

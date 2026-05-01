@@ -71,7 +71,6 @@ export default function Navbar() {
                     {/* Desktop navbar */}
                     {!isMobile && (
                         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                            <Typography>{user?.email}</Typography>
                             {navLinks.map((link) => (
                                 <Button
                                     key={link.label}
@@ -187,7 +186,6 @@ export default function Navbar() {
                 <Divider />
                 {/* Mobile navbar */}
                 <List sx={{ px: 1, pt: 1 }}>
-                    <Typography>{user?.email}</Typography>
                     {navLinks.map((link) => (
                         <ListItem key={link.label} disablePadding>
                             <ListItemButton

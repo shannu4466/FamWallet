@@ -1,7 +1,8 @@
 "use client"
 
-import { Email, Lock, Visibility, VisibilityOff, AccountBalanceWallet } from "@mui/icons-material"
+import { Email, Lock, Visibility, VisibilityOff } from "@mui/icons-material"
 import {
+    Alert,
     Box,
     Button,
     Container,
@@ -10,14 +11,16 @@ import {
     Stack,
     TextField,
     Typography,
-    Alert,
 } from "@mui/material"
+import { useFormik } from "formik"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { useFormik } from "formik"
 import * as Yup from "yup"
 
 import { useAuth } from "@/context/AuthContext"
+
+import Image from 'next/image'
+import logo from '../../public/logo.png'
 
 export default function LoginPage() {
     const router = useRouter()
@@ -45,7 +48,7 @@ export default function LoginPage() {
                 localStorage.getItem("famwallet_users") || "[]"
             );
             const userRecord = users.find((u) => u.email.toLowerCase() === values.email.toLowerCase());
-            
+
             const result = login({
                 ...values,
                 role: userRecord?.role || "family_member"
@@ -55,7 +58,7 @@ export default function LoginPage() {
                 return;
             }
             router.push("/")
-        },  
+        },
     })
 
     return (
@@ -89,9 +92,9 @@ export default function LoginPage() {
                     <Stack sx={{ alignItems: "center", mb: 4 }}>
                         <Box
                             sx={{
-                                width: 52,
-                                height: 52,
-                                borderRadius: 3,
+                                width: 70,
+                                height:70,
+                                borderRadius: "50%",
                                 background: "linear-gradient(135deg, #1976D2, #2E7D32)",
                                 display: "flex",
                                 alignItems: "center",
@@ -99,7 +102,7 @@ export default function LoginPage() {
                                 mb: 2,
                             }}
                         >
-                            <AccountBalanceWallet sx={{ color: "white", fontSize: 26 }} />
+                            <Image src={logo} alt="logo" height={70} width={70} />
                         </Box>
 
                         <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: "-0.5px", color: "grey.900" }}>
