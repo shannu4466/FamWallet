@@ -501,7 +501,7 @@ export default function HomePage() {
               <Typography sx={{ fontWeight: 700, fontSize: "1rem", color: "#1a1a2e" }}>
                 Transactions
               </Typography>
-              <Chip
+              {/* <Chip
                 label={5}
                 size="small"
                 sx={{
@@ -521,7 +521,7 @@ export default function HomePage() {
                     justifyContent: "center",
                   },
                 }}
-              />
+              /> */}
             </Box>
           </Box>
 
