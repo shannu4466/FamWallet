@@ -31,6 +31,7 @@ export default function ThemeRegistry({ children }: Props) {
         const savedMode = localStorage.getItem("themeMode") as PaletteMode | null;
 
         if (savedMode === "light" || savedMode === "dark") {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setMode(savedMode);
         }
     }, []);

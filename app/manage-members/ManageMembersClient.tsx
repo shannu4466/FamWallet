@@ -253,7 +253,12 @@ export default function ManageMembersClient() {
 
             <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}>
                 <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: "grey.900", letterSpacing: "-0.5px" }}>
+                    <Typography variant="h6" sx={{
+                        fontWeight: 800, color: "grey.900", letterSpacing: "-0.5px",
+                        background: "linear-gradient(135deg, #1976D2, #2E7D32)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                    }}>
                         Family Members
                     </Typography>
                     <Typography variant="body2" color="text.secondary">

@@ -35,6 +35,8 @@ const CATEGORIES = [
   { value: "entertainment", label: "Entertainment" },
   { value: "transport", label: "Transport" },
   { value: "dining", label: "Dining Out" },
+  { value: "shopping", label: "Shopping" },
+  { value: "electricity", label: "Electricity" },
   { value: "other", label: "Other" },
 ]
 
@@ -240,7 +242,7 @@ export default function HomePage() {
           >
             <Box>
               <Typography sx={{ fontSize: "14px", fontWeight: "bold" }}>{each.type}</Typography>
-              <Typography variant="h5" sx={{ fontWeight: "bold" }}>₹{each.money}</Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold" }}>₹{each.money.toLocaleString("en-IN")}</Typography>
             </Box>
           </Card>
         ))}
@@ -286,7 +288,13 @@ export default function HomePage() {
             xs: "-50%",
             sm: "30%",
             md: "-10%",
-            lg: "-7%"
+            lg: "-7%",
+          },
+          "@media (max-height: 700px)": {
+            mt: "-15%",
+          },
+          "@media (min-width: 1140px)": {
+            mt: "-10%",
           },
         }}
       >
