@@ -1,14 +1,14 @@
 "use client"
 
 import { useAuth } from "@/context/AuthContext"
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet"
+import { ArrowDownward, ArrowUpward } from "@mui/icons-material"
 import FilterListIcon from "@mui/icons-material/FilterList"
 import TrendingDownIcon from "@mui/icons-material/TrendingDown"
 import TrendingUpIcon from "@mui/icons-material/TrendingUp"
-import { ArrowUpward, ArrowDownward, UnfoldMore } from "@mui/icons-material"
 import {
     Box,
     Chip,
+    IconButton,
     MenuItem,
     Table,
     TableBody,
@@ -20,7 +20,6 @@ import {
     Typography,
     useMediaQuery,
     useTheme,
-    IconButton,
 } from "@mui/material"
 import { useMemo, useState } from "react"
 
@@ -70,7 +69,7 @@ const CATEGORY_MAP: Record<string, string> = {
     transport: "Transport",
     dining: "Dining Out",
     shopping: "Shopping",
-    electricity: "Elecricity",
+    electricity: "Electricity", 
     other: "Other",
 }
 

@@ -3,27 +3,39 @@
 import { useAuth } from "@/context/AuthContext"
 import CloseIcon from "@mui/icons-material/Close"
 import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee"
+import FilterListIcon from "@mui/icons-material/FilterList"
 import TrendingDownIcon from "@mui/icons-material/TrendingDown"
 import TrendingUpIcon from "@mui/icons-material/TrendingUp"
+
 import {
   Alert,
   Box,
   Button,
   Card,
+  Chip,
   Divider,
   Drawer,
   IconButton,
   InputAdornment,
   MenuItem,
   Snackbar,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
-  Typography
+  Typography,
+  useMediaQuery,
+  useTheme
 } from "@mui/material"
 import { useFormik } from "formik"
 import Image from "next/image"
-import { useState, useMemo } from "react"
+import { useMemo, useState } from "react"
 import * as Yup from "yup"
 import logo from "../public/logo.png"
+import Link from "next/link"
 
 const CATEGORIES = [
   { value: "groceries", label: "Groceries" },
@@ -40,6 +52,32 @@ const CATEGORIES = [
   { value: "other", label: "Other" },
 ]
 
+const CATEGORY_MAP: Record<string, string> = {
+  groceries: "Groceries",
+  salary: "Salary",
+  utilities: "Utilities",
+  rent: "Rent",
+  education: "Education",
+  healthcare: "Healthcare",
+  entertainment: "Entertainment",
+  transport: "Transport",
+  dining: "Dining Out",
+  shopping: "Shopping",
+  electricity: "Electricity",
+  other: "Other",
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
 const validationSchema = Yup.object({
   amount: Yup.number()
     .typeError("Amount must be a number")
@@ -50,20 +88,20 @@ const validationSchema = Yup.object({
 })
 
 interface Transaction {
-  id: string;
-  type: "credit" | "debit" | null;
-  amount: number;
-  category: string;
-  note: string;
-  date: string;
-  performedBy?: string;
+  id: string
+  type: "credit" | "debit" | null
+  amount: number
+  category: string
+  note: string
+  date: string
+  performedBy?: string
 }
 
 interface Member {
-  createdBy: string;
-  email: string;
-  role: string;
-  transactions: Transaction[];
+  createdBy: string
+  email: string
+  role: string
+  transactions: Transaction[]
 }
 
 export default function HomePage() {
@@ -72,6 +110,10 @@ export default function HomePage() {
   const [transactionType, setTransactionType] = useState<"credit" | "debit" | null>(null)
   const [successMsg, setSuccessMsg] = useState<string>("")
   const [openSnackBar, setOpenSnackBar] = useState<boolean>(false)
+
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isMd = useMediaQuery(theme.breakpoints.down("md"))
 
   const openDrawer = (type: "credit" | "debit") => {
     setTransactionType(type)
@@ -94,12 +136,12 @@ export default function HomePage() {
   const familyKey = useMemo(() => {
     if (!user?.email) return null
     if (user.role === "family_head") {
-      return user.email;
+      return user.email
     }
     const currentMember = allMembers.find(
       (m) => m.email === user.email
     )
-    return currentMember?.createdBy || null;
+    return currentMember?.createdBy || null
   }, [user, allMembers])
 
   // Get only those family wallet details
@@ -107,8 +149,8 @@ export default function HomePage() {
     if (!familyKey) return []
     return allMembers.filter(
       (member) => member.email === familyKey || member.createdBy === familyKey
-    );
-  }, [allMembers, familyKey]);
+    )
+  }, [allMembers, familyKey])
 
   // calculate wallet details of that family
   const walletSummary = useMemo(() => {
@@ -118,13 +160,13 @@ export default function HomePage() {
       member.transactions?.forEach((txn) => {
         if (txn.type === "credit") totalCredit += txn.amount
         if (txn.type === "debit") totalDebit += txn.amount
-      });
+      })
     })
     return {
       totalCredit,
       totalDebit,
       availableBalance: totalCredit - totalDebit,
-    };
+    }
   }, [familyMembers])
 
   // formik data and its validation
@@ -138,13 +180,13 @@ export default function HomePage() {
     onSubmit: (values, { resetForm }) => {
       const members = JSON.parse(localStorage.getItem("famwallet_members") || "[]")
 
-      const enteredAmount = parseFloat(values.amount);
+      const enteredAmount = parseFloat(values.amount)
 
       // Insufficient Funds
       if (transactionType === "debit" && enteredAmount > walletSummary.availableBalance) {
-        setSuccessMsg("Insufficient funds to debit.");
-        setOpenSnackBar(true);
-        return;
+        setSuccessMsg("Insufficient funds to debit.")
+        setOpenSnackBar(true)
+        return
       }
 
       // New transaction
@@ -190,19 +232,31 @@ export default function HomePage() {
   const dashboardData = [
     { type: "Total Credited", money: walletSummary.totalCredit },
     { type: "Total Debited", money: walletSummary.totalDebit },
-    { type: "Available Balance", money: walletSummary.availableBalance }
+    { type: "Available Balance", money: walletSummary.availableBalance },
   ]
 
+  const allTransactions = useMemo(() => {
+    const txns: (Transaction & { memberEmail: string })[] = []
+    familyMembers.forEach((member) => {
+      member.transactions?.forEach((txn) => {
+        txns.push({ ...txn, memberEmail: member.email })
+      })
+    })
+    return txns.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [familyMembers])
+
   return (
-    <Box>
-      <Typography>({user?.role} , {user?.email})</Typography>
+    <Box sx={{ pb: { xs: 10, sm: 4 } }}>
+      {/* <Typography>({user?.role} , {user?.email})</Typography> */}
+
+      {/* Dashboard Cards */}
       <Box
         sx={{
           display: "grid",
           gridTemplateColumns: {
             xs: "repeat(3,1fr)",
             sm: "repeat(3,1fr)",
-            md: "repeat(3,1fr)"
+            md: "repeat(3,1fr)",
           },
           gap: 2,
           width: "100%",
@@ -228,25 +282,25 @@ export default function HomePage() {
                 sm: "1rem",
                 md: "1.05rem",
               },
-              background:
-                "linear-gradient(135deg, #1976D2, #2E7D32)",
-              boxShadow:
-                "0 4px 14px rgba(25,118,210,0.35)",
+              background: "linear-gradient(135deg, #1976D2, #2E7D32)",
+              boxShadow: "0 4px 14px rgba(25,118,210,0.35)",
               transition: "all 0.25s ease",
               "&:hover": {
-                background:
-                  "linear-gradient(135deg, #1565C0, #1B5E20)",
+                background: "linear-gradient(135deg, #1565C0, #1B5E20)",
                 transform: "translateY(-3px)",
               },
             }}
           >
             <Box>
               <Typography sx={{ fontSize: "14px", fontWeight: "bold" }}>{each.type}</Typography>
-              <Typography variant="h5" sx={{ fontWeight: "bold" }}>₹{each.money.toLocaleString("en-IN")}</Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                ₹{each.money.toLocaleString("en-IN")}
+              </Typography>
             </Box>
           </Card>
         ))}
       </Box>
+
       <Snackbar
         open={openSnackBar}
         autoHideDuration={2000}
@@ -266,182 +320,341 @@ export default function HomePage() {
             background: "linear-gradient(135deg, #1976D2, #2E7D32)",
             boxShadow: "0 6px 14px rgba(46, 125, 50, 0.35)",
             "& .MuiAlert-action": {
-              color: "#fff"
+              color: "#fff",
             },
-            mt: 10
+            mt: 10,
           }}
         >
           {successMsg}
         </Alert>
       </Snackbar>
+
+      {/* About and Logo Section */}
       <Box
         sx={{
-          minHeight: "100vh",
           display: "flex",
-          justifyContent: "center",
+          flexDirection: { xs: "column", lg: "row" },
           alignItems: "center",
-          px: { xs: 2, sm: 4, md: 6, lg: 8 },
-          py: { xs: 3, sm: 4, md: 0 },
+          justifyContent: "center",
+          gap: { xs: 2, lg: 6 },
+          px: { xs: 2, sm: 4, md: 6 },
+          py: { xs: 3, sm: 4 },
           background: "linear-gradient(135deg, #f8fafc, #eef2ff)",
-          overflow: "hidden",
-          mt: {
-            xs: "-50%",
-            sm: "30%",
-            md: "-10%",
-            lg: "-7%",
-          },
-          "@media (max-height: 700px)": {
-            mt: "-15%",
-          },
-          "@media (min-width: 1140px)": {
-            mt: "-10%",
-          },
         }}
       >
+        {/* App Logo  */}
         <Box
           sx={{
-            width: "100%",
-            maxWidth: "1400px",
-            display: "flex",
-            flexDirection: { xs: "column", md: "column", lg: "row" },
+            display: { xs: "none", sm: "none", md: "none", lg: "flex" },
+            justifyContent: "center",
             alignItems: "center",
-            justifyContent: "space-between",
-            gap: { xs: 3, sm: 4, md: 5, lg: 8 },
+            flex: 1,
+            order: 2
+          }}
+        >
+          <Image
+            src={logo}
+            alt="logo"
+            width={1200}
+            height={1200}
+            style={{
+              width: "100%",
+              maxWidth: "420px",
+              height: "auto",
+              objectFit: "contain",
+            }}
+          />
+        </Box>
+
+        {/* About App */}
+        <Box
+          sx={{
+            flex: 1,
+            textAlign: { xs: "center", lg: "left" },
+            maxWidth: { xs: "100%", lg: "600px" },
+          }}
+        >
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              mb: 1.5,
+              fontSize: { xs: "2rem", sm: "2.4rem", md: "3rem", lg: "3.5rem" },
+              lineHeight: 1.2,
+              background: "linear-gradient(135deg, #1976D2, #2E7D32)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            FamWallet
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: { xs: "0.95rem", sm: "1rem", md: "1.05rem", lg: "1.1rem" },
+              color: "text.secondary",
+              lineHeight: 1.8,
+              mb: 3,
+            }}
+          >
+            FamWallet is a smart family expense management app designed to track
+            shared spending, manage members, and organize household finances in one
+            place.
+            <br />
+            <br />
+            Perfect for families, couples, roommates, and anyone managing expenses
+            together.
+          </Typography>
+
+          {/* Credit and Debit Buttons */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
+              justifyContent: { xs: "center", lg: "flex-start" },
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<TrendingUpIcon />}
+              onClick={() => openDrawer("credit")}
+              sx={{
+                width: { xs: "100%", sm: "220px" },
+                textTransform: "none",
+                fontWeight: 600,
+                borderRadius: "12px",
+                py: 1.2,
+                background: "linear-gradient(135deg, #1976D2, #2E7D32)",
+                boxShadow: "0 4px 10px rgba(25,118,210,0.25)",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #1565C0, #1B5E20)",
+                  transform: "translateY(-2px)",
+                },
+                mb: { xs: 0.5, sm: 0 },
+              }}
+            >
+              Credit Money
+            </Button>
+
+            <Button
+              variant="contained"
+              startIcon={<TrendingDownIcon />}
+              onClick={() => openDrawer("debit")}
+              sx={{
+                width: { xs: "100%", sm: "220px" },
+                textTransform: "none",
+                fontWeight: 600,
+                borderRadius: "12px",
+                py: 1.2,
+                background: "linear-gradient(135deg, #1976D2, #2E7D32)",
+                boxShadow: "0 4px 10px rgba(25,118,210,0.25)",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #1565C0, #1B5E20)",
+                  transform: "translateY(-2px)",
+                },
+                mt: { xs: 0.5, sm: 0 }
+              }}
+            >
+              Debit Money
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Transaction History */}
+      <Box
+        sx={{
+          px: { xs: 2, sm: 4, md: 6 },
+          py: { xs: 2, sm: 3 },
+        }}
+      >
+        <Typography sx={{ textAlign: "start", fontWeight: "bold", fontSize: "1.5rem", mb: 2 }}>
+          Transaction History
+        </Typography>
+        <Box
+          sx={{
+            background: "#fff",
+            borderRadius: "20px",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
+            overflow: "hidden",
+            mb: 3,
           }}
         >
           <Box
             sx={{
-              order: { xs: 1, lg: 2 },
-              width: { xs: "100%", lg: "50%" },
+              px: { xs: 2, sm: 3 },
+              py: 2.5,
+              borderBottom: "1px solid #f0f0f0",
               display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+              alignItems: { xs: "flex-start", sm: "center" },
+              justifyContent: "space-between",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
             }}
           >
-            <Box
-              sx={{
-                display: {
-                  xs: "none",
-                  sm: "none",
-                  md: "none",
-                  lg: "block"
-                }
-              }}
-            >
-              <Image
-                src={logo}
-                alt="logo"
-                width={1200}
-                height={1200}
-                style={{
-                  width: "100%",
-                  maxWidth: "520px",
-                  height: "auto",
-                  objectFit: "contain"
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <FilterListIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+              <Typography sx={{ fontWeight: 700, fontSize: "1rem", color: "#1a1a2e" }}>
+                Transactions
+              </Typography>
+              <Chip
+                label={5}
+                size="small"
+                sx={{
+                  height: 20,
+                  width: 20,
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                  background: "#eef2ff",
+                  color: "green",
+                  borderRadius: "50%",
+                  p: 0,
+                  "& .MuiChip-label": {
+                    px: 0,
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  },
                 }}
               />
             </Box>
           </Box>
 
-          <Box
-            sx={{
-              order: { xs: 2, lg: 1 },
-              width: { xs: "100%", lg: "50%" },
-              textAlign: { xs: "center", lg: "left" },
-            }}
-          >
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 800,
-                mb: 1.5,
-                fontSize: { xs: "2rem", sm: "2.4rem", md: "3rem", lg: "3.5rem" },
-                lineHeight: 1.2,
-                background: "linear-gradient(135deg, #1976D2, #2E7D32)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              FamWallet
-            </Typography>
-
-            <Typography
-              sx={{
-                fontSize: { xs: "0.95rem", sm: "1rem", md: "1.05rem", lg: "1.1rem" },
-                color: "text.secondary",
-                lineHeight: 1.8,
-                maxWidth: "600px",
-                mx: { xs: "auto", lg: 0 },
-                mb: 3,
-              }}
-            >
-              FamWallet is a smart family expense management app designed to track
-              shared spending, manage members, and organize household finances in one
-              place.
-              <br />
-              <br />
-              Perfect for families, couples, roommates, and anyone managing expenses
-              together.
-            </Typography>
-
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                gap: 2,
-                justifyContent: { xs: "center", lg: "flex-start" },
-                alignItems: "center",
-                width: "100%",
-              }}
-            >
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<TrendingUpIcon />}
-                onClick={() => openDrawer("credit")}
-                sx={{
-                  maxWidth: { xs: "100%", sm: "220px" },
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderRadius: "12px",
-                  py: 1.2,
-                  background: "linear-gradient(135deg, #1976D2, #2E7D32)",
-                  boxShadow: "0 4px 10px rgba(25,118,210,0.25)",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    background: "linear-gradient(135deg, #1565C0, #1B5E20)",
-                    transform: "translateY(-2px)",
-                  },
-                }}
-              >
-                Credit Money
-              </Button>
-
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<TrendingDownIcon />}
-                onClick={() => openDrawer("debit")}
-                sx={{
-                  maxWidth: { xs: "100%", sm: "220px" },
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderRadius: "12px",
-                  py: 1.2,
-                  background: "linear-gradient(135deg, #1976D2, #2E7D32)",
-                  boxShadow: "0 4px 10px rgba(25,118,210,0.25)",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    background: "linear-gradient(135deg, #1565C0, #1B5E20)",
-                    transform: "translateY(-2px)",
-                  },
-                }}
-              >
-                Debit Money
-              </Button>
+          {allTransactions.length === 0 ? (
+            <Box sx={{ py: 8, textAlign: "center" }}>
+              <Typography sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                No transactions found
+              </Typography>
             </Box>
-          </Box>
+          ) : (
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table sx={{ minWidth: { xs: 320, md: 650 } }}>
+                <TableHead>
+                  <TableRow sx={{ background: "#fafbff" }}>
+                    {[
+                      { label: "Date", hide: false },
+                      { label: "Member", hide: false },
+                      { label: "Type", hide: false },
+                      { label: "Category", hide: isMobile },
+                      { label: "Note", hide: isMd },
+                      { label: "Amount", hide: false },
+                    ].map(
+                      (col) =>
+                        !col.hide && (
+                          <TableCell
+                            key={col.label}
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: "0.78rem",
+                              color: "#666",
+                              textTransform: "uppercase",
+                              letterSpacing: 0.5,
+                              borderBottom: "2px solid #f0f0f0",
+                              py: 1.5,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {col.label}
+                          </TableCell>
+                        )
+                    )}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {allTransactions.slice(0, 5).map((txn, idx) => (
+                    <TableRow
+                      key={txn.id}
+                      sx={{
+                        "&:hover": { background: "#f8faff" },
+                        background: idx % 2 === 0 ? "#fff" : "#fdfdff",
+                        transition: "background 0.15s",
+                      }}
+                    >
+                      <TableCell sx={{ py: 1.8, fontSize: "0.83rem", color: "#444", whiteSpace: "nowrap" }}>
+                        {formatDate(txn.date)}
+                      </TableCell>
+
+                      <TableCell sx={{ py: 1.8 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Typography sx={{ fontSize: "0.83rem", color: "#333", fontWeight: 500 }}>
+                            {txn.memberEmail.split("@")[0].charAt(0).toUpperCase() +
+                              txn.memberEmail.split("@")[0].slice(1)}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+
+                      <TableCell sx={{ py: 1.8 }}>
+                        <Chip
+                          icon={
+                            txn.type === "credit"
+                              ? <TrendingUpIcon style={{ fontSize: 14 }} />
+                              : <TrendingDownIcon style={{ fontSize: 14 }} />
+                          }
+                          label={txn.type === "credit" ? "Credit" : "Debit"}
+                          size="small"
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: "0.75rem",
+                            height: 24,
+                            background: txn.type === "credit" ? "#e3f2fd" : "#ffebee",
+                            color: txn.type === "credit" ? "#1565C0" : "#c62828",
+                            border: `1px solid ${txn.type === "credit" ? "#90caf9" : "#ef9a9a"}`,
+                            "& .MuiChip-icon": { color: txn.type === "credit" ? "#1565C0" : "#c62828" },
+                          }}
+                        />
+                      </TableCell>
+
+                      {!isMobile && (
+                        <TableCell sx={{ py: 1.8 }}>
+                          <Typography sx={{ fontSize: "0.83rem", color: "#555" }}>
+                            {CATEGORY_MAP[txn.category] || txn.category}
+                          </Typography>
+                        </TableCell>
+                      )}
+
+                      {!isMd && (
+                        <TableCell sx={{ py: 1.8, maxWidth: 180 }}>
+                          <Typography
+                            sx={{
+                              fontSize: "0.83rem",
+                              color: "#777",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {txn.note || <span style={{ color: "#bbb", fontStyle: "italic" }}>—</span>}
+                          </Typography>
+                        </TableCell>
+                      )}
+
+                      <TableCell sx={{ py: 1.8 }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 800,
+                            fontSize: "0.95rem",
+                            color: txn.type === "credit" ? "green" : "red",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {txn.type === "credit" ? "+" : "−"}₹{txn.amount.toLocaleString("en-IN")}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Box>
+        <Link href="/expenses">
+          <Typography color="primary" sx={{ textAlign: "right", fontSize: "1rem", textDecoration: "underline", mt: "-4px" }}>View All Transactions</Typography>
+        </Link>
       </Box>
 
       <Drawer
@@ -535,9 +748,8 @@ export default function HomePage() {
                         <CurrencyRupeeIcon sx={{ fontSize: 18, color: "text.secondary" }} />
                       </InputAdornment>
                     ),
-                  }
-                }
-                }
+                  },
+                }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "12px",
