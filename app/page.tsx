@@ -283,7 +283,8 @@ export default function HomePage() {
           background: "linear-gradient(135deg, #f8fafc, #eef2ff)",
           overflow: "hidden",
           mt: {
-            xs: "-15%",
+            xs: "-50%",
+            sm: "30%",
             md: "-10%",
             lg: "-7%"
           },
