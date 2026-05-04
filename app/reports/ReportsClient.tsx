@@ -190,12 +190,13 @@ export default function ReportsClient() {
             <Box sx={{ mb: { xs: 3, md: 4 } }}>
                 <Typography
                     sx={{
-                        fontWeight: 900,
-                        fontSize: { xs: "1.7rem", sm: "2.1rem", md: "2.6rem" },
-                        background: "linear-gradient(135deg, #1976D2 30%, #2E7D32 100%)",
+                        fontWeight: 800,
+                        fontSize: { xs: "1.6rem", sm: "2rem", md: "2.4rem" },
+                        background: "linear-gradient(135deg, #1976D2, #2E7D32)",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent",
-                        letterSpacing: "-0.8px",
+                        display: "inline-block",
+                        letterSpacing: "-0.5px",
                         lineHeight: 1.1,
                     }}
                 >

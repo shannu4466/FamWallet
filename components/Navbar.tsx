@@ -6,6 +6,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
 import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import {
     AppBar,
     Box,
@@ -35,6 +36,7 @@ const navLinks = [
     { label: "Manage Members", href: "/manage-members", icon: <GroupIcon /> },
     { label: "Expense Tracker", href: "/expenses", icon: < CurrencyRupeeIcon /> },
     { label: "Reports", href: "/reports", icon: <BarChartIcon /> },
+    { label: "Profile", href: "/profile", icon: <AccountCircleIcon /> },
 ]
 
 const authLinks = [
