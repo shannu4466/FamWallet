@@ -247,9 +247,6 @@ export default function HomePage() {
 
   return (
     <Box sx={{ pb: { xs: 10, sm: 4 } }}>
-      {/* <Typography>({user?.role} , {user?.email})</Typography> */}
-
-      {/* Dashboard Cards */}
       <Box
         sx={{
           display: "grid",
@@ -501,27 +498,6 @@ export default function HomePage() {
               <Typography sx={{ fontWeight: 700, fontSize: "1rem", color: "#1a1a2e" }}>
                 Transactions
               </Typography>
-              {/* <Chip
-                label={5}
-                size="small"
-                sx={{
-                  height: 20,
-                  width: 20,
-                  fontSize: "1rem",
-                  fontWeight: "bold",
-                  background: "#eef2ff",
-                  color: "green",
-                  borderRadius: "50%",
-                  p: 0,
-                  "& .MuiChip-label": {
-                    px: 0,
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  },
-                }}
-              /> */}
             </Box>
           </Box>
 
@@ -737,8 +713,14 @@ export default function HomePage() {
                 name="amount"
                 placeholder="Enter amount"
                 value={formik.values.amount}
-                onChange={formik.handleChange}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d*\.?\d*$/.test(value)) {
+                    formik.setFieldValue("amount", value);
+                  }
+                }}
                 onBlur={formik.handleBlur}
+                type="text"
                 error={formik.touched.amount && Boolean(formik.errors.amount)}
                 helperText={formik.touched.amount && formik.errors.amount}
                 slotProps={{
@@ -784,6 +766,17 @@ export default function HomePage() {
                 onBlur={formik.handleBlur}
                 error={formik.touched.category && Boolean(formik.errors.category)}
                 helperText={formik.touched.category && formik.errors.category}
+                slotProps={{
+                  select: {
+                    displayEmpty: true,
+                    renderValue: (selected) => {
+                      if (!selected || (selected as string).length === 0) {
+                        return <span style={{ color: "#aaa" }}>Select a category</span>;
+                      }
+                      return CATEGORIES.find((cat) => cat.value === selected)?.label;
+                    },
+                  },
+                }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "12px",

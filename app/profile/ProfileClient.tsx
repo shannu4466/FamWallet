@@ -5,7 +5,6 @@ import { Box, Typography } from '@mui/material'
 
 export default function ProfileClient() {
     const { user } = useAuth()
-    
     const userFirstTwoLetters = user?.email?.slice(0, 2).toUpperCase() || "??"
     const userEmail = user?.email ? (user.email.charAt(0).toUpperCase() + user.email.slice(1)) : "Guest User"
 
@@ -57,7 +56,7 @@ export default function ProfileClient() {
                         {userFirstTwoLetters}
                     </Typography>
                 </Box>
-                <Box sx={{ textAlign: { xs: "center", md: "left" }}}>
+                <Box sx={{ textAlign: "center" }}>
                     <Typography sx={{
                         fontWeight: 800,
                         fontSize: { xs: "0.6rem", sm: "1rem", md: "1.2rem" },
